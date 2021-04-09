@@ -1,0 +1,66 @@
+{
+    "bot": {
+        "nickname": "Wacode Bot",
+        "owners": ["133105799818903552"]
+    },
+    "roles": {
+        "firstJoin": "805700680916271125",
+        "registered": ["805700706534948875"]
+    },
+    "registration": {
+        "channel": "805585015295443066"
+    },
+    "channels": {
+        "sponsor": [
+            {
+                "name": "{sponsor-id}-info",
+                "type": "text"
+            },
+            {
+                "name": "{sponsor-id}-talk",
+                "type": "text"
+            },
+            {
+                "name": "{sponsor-name}",
+                "type": "voice"
+            },
+            {
+                "name": "{sponsor-name} Breakout Room",
+                "type": "voice",
+                "visibility": ["staff", "sponsor-team"]
+            }
+        ],
+        "team": [
+            {
+                "name": "team{team-id}-general-1",
+                "type": "text",
+                "visibility": ["staff", "sponsor", "team", "judge"]
+            },
+            {
+                "name": "team{team-id}-general-2",
+                "type": "text",
+                "visibility": ["staff", "sponsor", "team", "judge"]
+            },
+            {
+                "name": "team{team-id}-ideas",
+                "type": "text",
+                "visibility": ["staff", "team", "judge"]
+            },
+            {
+                "name": "team{team-id}-resources",
+                "type": "text",
+                "visibility": ["staff", "team", "judge"]
+            },
+            {
+                "name": "Team {team-id} Voice 1",
+                "type": "voice",
+                "visibility": ["staff", "sponsor", "team", "judge"]
+            },
+            {
+                "name": "Team {team-id} Voice 2",
+                "type": "voice",
+                "visibility": ["staff", "sponsor", "team", "judge"]
+            }
+        ]
+    }
+}
