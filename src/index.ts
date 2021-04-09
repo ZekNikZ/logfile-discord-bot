@@ -52,7 +52,6 @@ client.on('message', onMessage.bind(undefined, client));
 delayedDeletion.setup();
 
 // Register commands
-client.registry
-    .registerDefaults() // default commands, groups, and arguments
-    .registerTypesIn(path.join(__dirname, 'argument-types'))
-    .registerCommandsIn(path.join(__dirname, 'commands'));
+client.registry.registerDefaults(); // default commands, groups, and arguments
+// .registerTypesIn(path.join(__dirname, 'argument-types'))
+// .registerCommandsIn(path.join(__dirname, 'commands'));
