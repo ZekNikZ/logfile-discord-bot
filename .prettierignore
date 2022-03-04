@@ -1,0 +1,13 @@
+node_modules
+types
+api
+.idea
+mongodata
+database
+.vs
+build
+mnt
+.devcontainer
+.vscode
+dist
+node_modules
