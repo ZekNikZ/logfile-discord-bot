@@ -1,6 +1,6 @@
 import { Client, ColorResolvable, Message, MessageActionRow, MessageButton, MessageEmbed } from "discord.js";
 import { dataLogger } from "../util/log";
-import { getIssue, getMergeRequest, getMergeRequestApprovals } from "../gitlab";
+import { getIssue, getMergeRequest, getMergeRequestApprovals, getMergeRequestPipelines } from "../gitlab";
 import { Types } from "@gitbeaker/node";
 import color from "../util/color";
 
@@ -95,11 +95,42 @@ async function issueHandler(msg: Message, content: string) {
   }
 
   const buttons = new MessageActionRow().addComponents([
-    new MessageButton().setLabel(`View Issue #${num}`).setURL(issue.web_url).setStyle("LINK"),
-    new MessageButton().setLabel("Hide").setCustomId("hide").setStyle("DANGER")
+    new MessageButton().setLabel(`View Issue #${num}`).setURL(issue.web_url).setStyle("LINK")
   ]);
 
+  [...issue.description.matchAll(/!\d+/g)]
+    .map((match) => parseInt(match[0].slice(1)))
+    .forEach((mr) => {
+      buttons.addComponents(
+        new MessageButton()
+          .setLabel(`Issue #${mr}`)
+          .setURL(issue.web_url.replace(/issues\/.+/, `merge_requests/${mr}`))
+          .setStyle("LINK")
+      );
+    });
+
+  buttons.addComponents([new MessageButton().setLabel("Hide").setCustomId("hide").setStyle("DANGER")]);
+
   msg.channel.send({ embeds: [embed], components: [buttons] });
+}
+
+function transformPipelineStatus(status: Types.PipelineStatus | undefined) {
+  switch (status) {
+    case "pending":
+      return ":arrows_counterclockwise: Pending";
+    case "running":
+      return ":arrows_counterclockwise: Running";
+    case "success":
+      return ":white_check_mark: Passed";
+    case "failed":
+      return ":no_entry: Failed";
+    case "canceled":
+      return ":stop_button: Canceled";
+    case "skipped":
+      return ":fast_forward: Skipped";
+    default:
+      return ":grey_question: Unknown";
+  }
 }
 
 async function mergeRequestHandler(msg: Message, content: string) {
@@ -113,6 +144,9 @@ async function mergeRequestHandler(msg: Message, content: string) {
   }
 
   const approvals = await getMergeRequestApprovals(num);
+
+  const pipelines = await getMergeRequestPipelines(num);
+  const latestPipeline = pipelines?.sort((a, b) => b.id - a.id)[0];
 
   const embed = new MessageEmbed()
     .setColor(determineMergeRequestColor(mr, approvals))
@@ -142,25 +176,25 @@ async function mergeRequestHandler(msg: Message, content: string) {
         inline: true
       },
       {
-        name: "Conflicts",
-        value: mr.has_conflicts ? "Yes" : "No",
-        inline: true
-      },
-      {
-        name: "Merge Status",
-        value: mr.merge_status === "can_be_merged" ? "No Conflicts" : "Merge Conflicts",
-        inline: true
-      },
-      {
-        name: "Unresolved Conversations",
-        value: mr.blocking_discussions_resolved ? "No" : "Yes",
-        inline: true
-      },
-      {
         name: "Approvals",
         value: approvals
           ? `${approvals.approvals_required - approvals.approvals_left}/${approvals.approvals_required}`
           : "N/A",
+        inline: true
+      },
+      {
+        name: "Unresolved Conversations",
+        value: mr.blocking_discussions_resolved ? ":white_check_mark: No" : ":no_entry: Yes",
+        inline: true
+      },
+      {
+        name: "Pipeline Status",
+        value: transformPipelineStatus(latestPipeline?.status),
+        inline: true
+      },
+      {
+        name: "Merge Status",
+        value: mr.has_conflicts ? ":no_entry: Merge Conflicts" : ":white_check_mark: No Conflicts",
         inline: true
       }
     ]);
@@ -175,7 +209,10 @@ async function mergeRequestHandler(msg: Message, content: string) {
 
   const buttons = new MessageActionRow().addComponents([
     new MessageButton().setLabel(`View Merge Request !${num}`).setURL(mr.web_url).setStyle("LINK"),
-    new MessageButton().setLabel("Hide").setCustomId("hide").setStyle("DANGER")
+    new MessageButton()
+      .setLabel("View Pipeline")
+      .setURL(`${mr.web_url.replaceAll(/merge_requests\/.+/g, "pipelines/")}${latestPipeline?.id}`)
+      .setStyle("LINK")
   ]);
 
   [...mr.description.matchAll(/#\d+/g)]
@@ -188,6 +225,8 @@ async function mergeRequestHandler(msg: Message, content: string) {
           .setStyle("LINK")
       );
     });
+
+  buttons.addComponents([new MessageButton().setLabel("Hide").setCustomId("hide").setStyle("DANGER")]);
 
   msg.channel.send({ embeds: [embed], components: [buttons] });
 }

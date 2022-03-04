@@ -9,7 +9,7 @@ const api = new Gitlab({
 
 const projectId = config.gitlab.projectId;
 
-export async function getIssue(id: number): Promise<Types.IssueSchema | null> {
+export async function getIssue(id: number) {
   try {
     return await api.Issues.show(projectId, id);
   } catch (e) {
@@ -17,7 +17,7 @@ export async function getIssue(id: number): Promise<Types.IssueSchema | null> {
   }
 }
 
-export async function getMergeRequest(id: number): Promise<Types.MergeRequestSchema | null> {
+export async function getMergeRequest(id: number) {
   try {
     return await api.MergeRequests.show(projectId, id);
   } catch (e) {
@@ -25,14 +25,20 @@ export async function getMergeRequest(id: number): Promise<Types.MergeRequestSch
   }
 }
 
-export async function getMergeRequestApprovals(
-  id: number
-): Promise<Types.MergeRequestLevelMergeRequestApprovalSchema | null> {
+export async function getMergeRequestApprovals(id: number) {
   try {
     return (await api.MergeRequestApprovals.approvalState(
       projectId,
       id
     )) as Types.MergeRequestLevelMergeRequestApprovalSchema;
+  } catch (e) {
+    return null;
+  }
+}
+
+export async function getMergeRequestPipelines(id: number) {
+  try {
+    return await api.MergeRequests.pipelines(projectId, id);
   } catch (e) {
     return null;
   }
